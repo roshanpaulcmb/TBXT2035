@@ -1,4 +1,5 @@
 # TBXT2035
+https://tbxtchallenge.org/
 
 -1.0 Baseline - What others have done
 * Start with the PDB of known residue structures (half the protein)
