@@ -10,7 +10,7 @@ https://tbxtchallenge.org/
 * Generate predicted pdb of TBXT
 * Alphafold/Boltz
 
-1.0 Weighted Ensemble
+1.0 Ensemble sampling
 * Run 1 microsecond simulation
 * Simulation must be weighted ensemble
 
