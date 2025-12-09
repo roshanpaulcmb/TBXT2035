@@ -1,0 +1,196 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww24520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 loading history file ... 23 events added\
+buffer line limit: 512   max line length: unlimited\
+Main console display active (Tcl8.6.12 / Tk8.6.12)\
+(roshanpaul) 24 % cd /volumes/rpaul1tb/ssdfinl\
+couldn't change working directory to "/volumes/rpaul1tb/ssdfinl": no such file or directory\
+(roshanpaul) 25 % cd /volumes/rpaul1tb/ssdfinal\
+couldn't change working directory to "/volumes/rpaul1tb/ssdfinal": no such file or directory\
+(roshanpaul) 26 % cd /Volumes/RPaul1TB/pitt/ssdFinal/ace2Run04Dec25Explicit\
+(ace2Run04Dec25Explicit) 27 % ls\
+/Volumes/RPaul1TB/pitt/ssdFinal/ace2Run04Dec25Explicit:\
+ace2Run04Dec25/             binding.txt                 contacts13A.png             distanceHeatmap.png\
+filteredAvgD13.png          pairwiseContactFreq13.png   residueCorrelation.png      rmsd-1.png\
+rmsd0.png                   sfePCA.png                  umapClustered.png           umapN90D0.6.png\
+(ace2Run04Dec25Explicit) 28 % cd ace2Run04Dec25/\
+(ace2Run04Dec25) 29 % ls\
+/Volumes/RPaul1TB/pitt/ssdFinal/ace2Run04Dec25Explicit/ace2Run04Dec25:\
+8dm9woAce2.pdb              8dm9woAce2woNAG.pdb         ace2.pdb                    binding.txt\
+contacts13A.png             distanceHeatmap.png         etrajectory.dcd             filteredAvgD13.png\
+nbD1.pdb                    nbD10.pdb                   nbD11.pdb                   nbD13.pdb\
+nbD14.pdb                   nbD2.pdb                    nbD4.pdb                    nbD7.pdb\
+nbD8.pdb                    nbD9.pdb                    pairwiseContactFreq13.png   residueCorrelation.png\
+rmsd-1.png                  rmsd0.png                   sfePCA.png                  system.pdb\
+trajectory.dcd              trans8DM9rbd.pdb            umapClustered.png           umapN90D0.6.png\
+sfePCA.png system.pdb\
+(ace2Run04Dec25) 30 % mol new system.pdb\
+0\
+(ace2Run04Dec25) 31 % set s1 [atomselect top "protein"]\
+atomselect0\
+(ace2Run04Dec25) 32 % measure minmax $s1\
+\{178.3489990234375 121.44599914550781 214.0229949951172\} \{241.47999572753906 199.06199645996094 311.85699462890625\}\
+(ace2Run04Dec25) 33 % set s2 [atomselect top "all"]\
+atomselect1\
+(ace2Run04Dec25) 34 % measure minmax $s2\
+\{100.71800231933594 57.86000061035156 173.7259979248047\} \{317.7250061035156 262.6419982910156 352.3280029296875\}\
+trajectory.dcd trans8DM9rbd.pdb\
+(ace2Run04Dec25) 35 % mol addfile trajectory.dcd step 100 waitfor all\
+0\
+(ace2Run04Dec25) 36 % animate delete all\
+(ace2Run04Dec25) 37 % mol dfile system.pdb\
+usage: mol <command> [args...]\
+\
+Molecules and Data:\
+  new [file name] [options...]       -- load file into a new molecule\
+  new atoms <natoms>                 -- generate a new molecule with 'empty' atoms\
+  addfile <file name> [options...]   -- load files into existing molecule\
+    options: type, first, last, step, waitfor, volsets, filebonds, autobonds, \
+             <molid> (addfile only)\
+  load <file type> <file name>       -- load molecule (obsolescent)\
+  urlload <file type> <URL>          -- load molecule from URL\
+  pdbload <four letter accession id> -- download molecule from the PDB\
+  cancel <molid>                     -- cancel load/save of trajectory\
+  delete <molid>                     -- delete given molecule\
+  rename <molid> <name>              -- Rename the specified molecule\
+  dataflag <molid> [set | unset] <flagname> -- Set/unset data output flags\
+  list [all|<molid>]                 -- displays info about molecules\
+\
+Molecule GUI Properties:\
+  top <molid>                        -- make that molecule 'top'\
+  on <molid>                         -- make molecule visible\
+  off <molid>                        -- make molecule invisible\
+  fix <molid>                        -- don't apply mouse motions\
+  free <molid>                       -- let mouse move molecules\
+  active <molid>                     -- make molecule active\
+  inactive <molid>                   -- make molecule inactive\
+\
+Graphical Representations:\
+  addrep <molid>                     -- add a new representation\
+  delrep <repid> <molid>             -- delete rep\
+  default [color | style | selection | material] <value>\
+  representation|rep <style>         -- set the drawing style for new reps\
+  selection <selection>              -- set the selection for new reps\
+  color <color>                      -- set the color for new reps\
+  material <material>                -- set the material for new reps\
+  modstyle <repid> <molid> <style>   -- change the drawing style for a rep\
+  modselect <repid> <molid> <selection>  -- change the selection for a rep\
+  modcolor <repid> <molid> <color>   -- change the color for a rep\
+  modmaterial <repid> <molid> <material> -- change the material for a rep\
+  repname <molid> <repid>            -- Get the name of a rep\
+  repindex <molid> <repname>         -- Get the repid of a rep from its name\
+  reanalyze <molid>                  -- Re-analyze structure after changes\
+  bondsrecalc <molid>                -- Recalculate bonds, current timestep\
+  ssrecalc <molid>                   -- Recalculate secondary structure (Cartoon)\
+  selupdate <repid> <molid> [on|off] -- Get/Set auto recalc of rep selection\
+  colupdate <repid> <molid> [on|off] -- Get/Set auto recalc of rep color\
+  scaleminmax <molid> <repid> [<min> <max>|auto] -- Get/set colorscale minmax\
+  drawframes <molid> <repid> [<framespec>|now] -- Get/Set drawn frame range\
+  smoothrep <molid> <repid> [smooth] -- Get or set trajectory smoothing value\
+  showperiodic <molid> <repid> [flags] -- Get or set periodic image display\
+  numperiodic <molid> <repid> <n>    -- Get or set number of periodic images\
+  showrep <molid> <repid> [on|off]   -- Turn selected rep on or off\
+  volaxes   <molid> <volID> <Xaxis> <Yaxis> <Zaxis> -- set vol axes\
+  voldelete <molid> <volID>          -- delete volumetric data\
+  volmove   <molid> <volID> <matrix> -- transform volumetric data\
+  volorigin <molid> <volID> <vector> -- set origin\
+  volscale  <molid> <volID> <vector> -- scale volume\
+\
+Clipping Planes:\
+  clipplane center <clipid> <repid> <molid> [<vector>]\
+  clipplane color  <clipid> <repid> <molid> [<vector>]\
+  clipplane normal <clipid> <repid> <molid> [<vector>]\
+  clipplane status <clipid> <repid> <molid> [<mode>]\
+  clipplane num\
+\
+See also the molinfo command\
+\
+(ace2Run04Dec25) 38 % mol addfile system.pdb\
+0\
+(ace2Run04Dec25) 39 % \
+(ace2Run04Dec25) 39 % mol addfile trajectory.dcd step 10 waitfor all\
+0\
+(ace2Run04Dec25) 40 % set s1 [atomselect top "protein"]\
+atomselect2\
+(ace2Run04Dec25) 41 % animate write dcd traj_prot.dcd sel $s1 skip 1 waitfor all\
+501\
+(ace2Run04Dec25) 42 % $s1 writepdb prot.pdb\
+(ace2Run04Dec25) 43 % mol delete all\
+(ace2Run04Dec25) 44 % mol new prot.pdb\
+1\
+(ace2Run04Dec25) 45 % mol adddfile traj_prot.dcd step 1 waitfor all\
+usage: mol <command> [args...]\
+\
+Molecules and Data:\
+  new [file name] [options...]       -- load file into a new molecule\
+  new atoms <natoms>                 -- generate a new molecule with 'empty' atoms\
+  addfile <file name> [options...]   -- load files into existing molecule\
+    options: type, first, last, step, waitfor, volsets, filebonds, autobonds, \
+             <molid> (addfile only)\
+  load <file type> <file name>       -- load molecule (obsolescent)\
+  urlload <file type> <URL>          -- load molecule from URL\
+  pdbload <four letter accession id> -- download molecule from the PDB\
+  cancel <molid>                     -- cancel load/save of trajectory\
+  delete <molid>                     -- delete given molecule\
+  rename <molid> <name>              -- Rename the specified molecule\
+  dataflag <molid> [set | unset] <flagname> -- Set/unset data output flags\
+  list [all|<molid>]                 -- displays info about molecules\
+\
+Molecule GUI Properties:\
+  top <molid>                        -- make that molecule 'top'\
+  on <molid>                         -- make molecule visible\
+  off <molid>                        -- make molecule invisible\
+  fix <molid>                        -- don't apply mouse motions\
+  free <molid>                       -- let mouse move molecules\
+  active <molid>                     -- make molecule active\
+  inactive <molid>                   -- make molecule inactive\
+\
+Graphical Representations:\
+  addrep <molid>                     -- add a new representation\
+  delrep <repid> <molid>             -- delete rep\
+  default [color | style | selection | material] <value>\
+  representation|rep <style>         -- set the drawing style for new reps\
+  selection <selection>              -- set the selection for new reps\
+  color <color>                      -- set the color for new reps\
+  material <material>                -- set the material for new reps\
+  modstyle <repid> <molid> <style>   -- change the drawing style for a rep\
+  modselect <repid> <molid> <selection>  -- change the selection for a rep\
+  modcolor <repid> <molid> <color>   -- change the color for a rep\
+  modmaterial <repid> <molid> <material> -- change the material for a rep\
+  repname <molid> <repid>            -- Get the name of a rep\
+  repindex <molid> <repname>         -- Get the repid of a rep from its name\
+  reanalyze <molid>                  -- Re-analyze structure after changes\
+  bondsrecalc <molid>                -- Recalculate bonds, current timestep\
+  ssrecalc <molid>                   -- Recalculate secondary structure (Cartoon)\
+  selupdate <repid> <molid> [on|off] -- Get/Set auto recalc of rep selection\
+  colupdate <repid> <molid> [on|off] -- Get/Set auto recalc of rep color\
+  scaleminmax <molid> <repid> [<min> <max>|auto] -- Get/set colorscale minmax\
+  drawframes <molid> <repid> [<framespec>|now] -- Get/Set drawn frame range\
+  smoothrep <molid> <repid> [smooth] -- Get or set trajectory smoothing value\
+  showperiodic <molid> <repid> [flags] -- Get or set periodic image display\
+  numperiodic <molid> <repid> <n>    -- Get or set number of periodic images\
+  showrep <molid> <repid> [on|off]   -- Turn selected rep on or off\
+  volaxes   <molid> <volID> <Xaxis> <Yaxis> <Zaxis> -- set vol axes\
+  voldelete <molid> <volID>          -- delete volumetric data\
+  volmove   <molid> <volID> <matrix> -- transform volumetric data\
+  volorigin <molid> <volID> <vector> -- set origin\
+  volscale  <molid> <volID> <vector> -- scale volume\
+\
+Clipping Planes:\
+  clipplane center <clipid> <repid> <molid> [<vector>]\
+  clipplane color  <clipid> <repid> <molid> [<vector>]\
+  clipplane normal <clipid> <repid> <molid> [<vector>]\
+  clipplane status <clipid> <repid> <molid> [<mode>]\
+  clipplane num\
+\
+See also the molinfo command\
+\
+(ace2Run04Dec25) 46 % mol addfile traj_prot.dcd step 1 waitfor all\
+1\
+Warning) multiplot: Data vector empty, ignoring plot!\
+(ace2Run04Dec25) 47 % }
