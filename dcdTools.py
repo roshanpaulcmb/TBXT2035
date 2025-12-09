@@ -22,25 +22,38 @@ def downsample(data, key = "t0",
 
 # make function be able to take multiple dcds
 def stitch(data, dcd1, 
-           outputDcd = "stitched.dcd"):
+           outputDcd = "stitched.dcd",
+           save = False):
     data["dcd1"] = dcd1
     data["t1"] = mdt.load(data["dcd1"], top = data["pdb"])
     data["stitched"] = outputDcd
     data["tS"] = mdt.join(data["t0"], data["t1"], 
                           discard_overlapping_frames = True)
-    
-    data["tS"].save(outputDcd)
+    if save:
+        data["tS"].save(outputDcd)
     return data
     
-def align(data, key = "t0"):
-    data[key].superpose(data[key], 0)
+def align(data, key = "t0", refFrame = 0):
+    data[key].superpose(data[key], refFrame)
+    return data
+
+def stripWater(data, outputName = "system", save = False):
+    data["u"] = mda.Universe(data["pdb"], data["dcd0"])
+    data["protein"] = data["u"].select_atoms("protein")
+    
+    if save:
+        data["protein"].write(f'{outputName}Stripped.pdb')
+        data["protein"].write(f'{outputName}Stripped.dcd', frames = "all")
+    
     return data
 
 def runAll():
     # use whatever functions you need to here
     data = setup("<YOUR PDB>", "<YOUR DCD>")
-    align()
-    downsample()    
+    downsample(data)
+    align(data)
+    stripWater(data, save = True)
+    
     return None
 
 
