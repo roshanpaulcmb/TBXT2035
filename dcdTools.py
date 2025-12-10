@@ -44,6 +44,10 @@ def stripWater(data,
     
     return data
 
+
+
+
+
 def runAll():
     # use whatever functions you need to here
     data = setup()
