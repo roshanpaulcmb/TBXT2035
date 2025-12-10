@@ -54,7 +54,6 @@ def stitch(data, dcd1 = args.dcdStitch,
         data["dcd0"] = outputName
     return data
 
-
 def downsample(data,
                start = 0, end = -1, step = 10,
                outputName = args.outputName + "Downsampled.dcd"):
@@ -69,8 +68,15 @@ def alignTraj(data, key = "t0", refFrame = 0):
     data[key].superpose(data[key], refFrame)
     return data
 
-# For aligning mdanalysis universe
-def alignU(data, select = "backbone", verbose = True):
+def stripWater(data, 
+               outputName = args.outputName + "Stripped",
+               select = "backbone",
+               verbose = True,
+               save = False):
+    print("\nStripping water from .pdb and .dcd files..")
+    data["u"] = mda.Universe(data["pdb"], data["dcd0"])
+    data["protein"] = data["u"].select_atoms("protein")
+    
     print("\nAligning mdanalysis universe..")
     aligner = align.AlignTraj(data["protein"], 
                               data["protein"],
@@ -81,16 +87,6 @@ def alignU(data, select = "backbone", verbose = True):
     # Write over aligned dcd
     data["dcd0"] = args.outputName + 'Aligned.dcd'
     data["protein"] = mda.Universe(data["pdb"], data["dcd0"])
-    return data
-
-def stripWater(data, 
-               outputName = args.outputName + "Stripped", 
-               save = False):
-    print("\nStripping water from .pdb and .dcd files..")
-    data["u"] = mda.Universe(data["pdb"], data["dcd0"])
-    data["protein"] = data["u"].select_atoms("protein")
-    
-    data = alignU(data)
     
     if save:
         data["protein"].write(f'{outputName}.pdb')
@@ -100,10 +96,10 @@ def stripWater(data,
 
 def runAll():
     # use whatever functions you need to here
-    data = setup()
-    stitch(data)
-    downsample(data)
-    align(data)
+    data = setup(loadingMdt = True)
+    # stitch(data)
+    # downsample(data)
+    # align(data)
     stripWater(data, save = True)
     
     return None
