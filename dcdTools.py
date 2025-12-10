@@ -23,70 +23,20 @@ args = parser.parse_args()
 #### FUNCTIONS ####
 
 
-def setup(pdb = args.pdb, dcd = args.dcd, loadingMdt = False):
+def setup(pdb = args.pdb, dcd = args.dcd):
     print("\nSetting up..")
     data = { }
     data["pdb"] = pdb
     data["dcd0"] = dcd
-    
-    if loadingMdt:
-        data["t0"] = mdt.load(data["dcd0"], top = data["pdb"])
-    return data
-
-# Do this first if you need to stitch dcds
-# Future: make function be able to take multiple dcds
-def stitch(data, dcd1 = args.dcdStitch, 
-           outputName = args.outputName + "Stitched.dcd",
-           save = False):
-    print("\nStitching .dcd files..")
-    if dcd1 is None:
-        raise FileNotFoundError("Use --dcdStitch to stitch dcd to initial dcd")
-    if ".dcd" not in dcd1:
-        raise ValueError("Input must contain '.dcd'")
-    
-    data["dcd1"] = dcd1
-    data["t1"] = mdt.load(data["dcd1"], top = data["pdb"])
-    data["t0"] = mdt.join(data["t0"], data["t1"], 
-                          discard_overlapping_frames = True)
-    
-    if save:
-        data["t0"].save(outputName)
-        data["dcd0"] = outputName
-    return data
-
-def downsample(data,
-               start = 0, end = -1, step = 10,
-               outputName = args.outputName + "Downsampled.dcd"):
-    print("\nCreating downsized .dcd file..")
-    data["t0"][start:end:step].save(outputName)
-    return data
-
-
-# For aligning mdtraj trajectories
-def alignTraj(data, key = "t0", refFrame = 0):
-    print("\nAligning mdtraj trajectory..")
-    data[key].superpose(data[key], refFrame)
     return data
 
 def stripWater(data, 
                outputName = args.outputName + "Stripped",
-               select = "backbone",
                verbose = True,
                save = False):
     print("\nStripping water from .pdb and .dcd files..")
     data["u"] = mda.Universe(data["pdb"], data["dcd0"])
     data["protein"] = data["u"].select_atoms("protein")
-    
-    print("\nAligning mdanalysis universe..")
-    aligner = align.AlignTraj(data["protein"], 
-                              data["protein"],
-                              select = select,
-                              outputName = args.outputName + 'Aligned.dcd',
-                              in_memory=False).run(verbose = verbose)
-    
-    # Write over aligned dcd
-    data["dcd0"] = args.outputName + 'Aligned.dcd'
-    data["protein"] = mda.Universe(data["pdb"], data["dcd0"])
     
     if save:
         data["protein"].write(f'{outputName}.pdb')
@@ -96,10 +46,7 @@ def stripWater(data,
 
 def runAll():
     # use whatever functions you need to here
-    data = setup(loadingMdt = True)
-    # stitch(data)
-    # downsample(data)
-    # align(data)
+    data = setup()
     stripWater(data, save = True)
     
     return None
@@ -107,3 +54,66 @@ def runAll():
 
 if __name__ == "__main__":
     runAll()
+    
+    
+    # print("\nAligning mdanalysis universe..")
+    # aligner = align.AlignTraj(data["protein"], 
+    #                           data["protein"],
+    #                           select = select,
+    #                           outputName = args.outputName + 'Aligned.dcd',
+    #                           in_memory=False).run(verbose = verbose)
+    
+    # # Write over aligned dcd
+    # data["protein"] = mda.Universe(data["pdb"], data["dcd0"])
+    # data["dcd0"] = args.outputName + 'Aligned.dcd'
+    
+# # Do this first if you need to stitch dcds
+# # Future: make function be able to take multiple dcds
+# def stitch(data, dcd1 = args.dcdStitch, 
+#            outputName = args.outputName + "Stitched.dcd",
+#            save = False):
+#     print("\nStitching .dcd files..")
+#     if dcd1 is None:
+#         raise FileNotFoundError("Use --dcdStitch to stitch dcd to initial dcd")
+#     if ".dcd" not in dcd1:
+#         raise ValueError("Input must contain '.dcd'")
+    
+#     data["dcd1"] = dcd1
+#     data["t1"] = mdt.load(data["dcd1"], top = data["pdb"])
+#     data["t0"] = mdt.join(data["t0"], data["t1"], 
+#                           discard_overlapping_frames = True)
+    
+#     if save:
+#         data["t0"].save(outputName)
+#         data["dcd0"] = outputName
+#     return data
+
+# def downsample(data,
+#                start = 0, end = -1, step = 10,
+#                outputName = args.outputName + "Downsampled.dcd"):
+#     print("\nCreating downsized .dcd file..")
+#     data["t0"][start:end:step].save(outputName)
+#     return data
+
+# def stitch(data, dcd1 = args.dcd1, outputName = args.outputName + "Stitched.dcd"):
+
+#     data["u1"] = mda.Universe(data[""], dcd1)
+#     universe1 = mda.Universe('topology.psf', 'trajectory1.dcd')
+
+#     # Load the second DCD file and its topology (if different, otherwise reuse)
+#     universe2 = "q"
+
+#     # Concatenate the universes
+#     # This creates a new universe where frames from universe2 are appended to universe1
+#     concatenated_universe = mda.Merge(universe1, universe2)
+
+#     # Write the concatenated trajectory to a new DCD file
+#     with mda.Writer('concatenated.dcd', multiframe=True) as w:
+#         for ts in concatenated_universe.trajectory:
+#             w.write(ts)
+
+# # For aligning mdtraj trajectories
+# def alignTraj(data, key = "t0", refFrame = 0):
+#     print("\nAligning mdtraj trajectory..")
+#     data[key].superpose(data[key], refFrame)
+#     return data
