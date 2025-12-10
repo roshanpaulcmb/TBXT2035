@@ -23,13 +23,14 @@ args = parser.parse_args()
 #### FUNCTIONS ####
 
 
-def setup(pdb = args.pdb, dcd = args.dcd):
+def setup(pdb = args.pdb, dcd = args.dcd, loadingMdt = False):
     print("\nSetting up..")
     data = { }
     data["pdb"] = pdb
     data["dcd0"] = dcd
     
-    data["t0"] = mdt.load(data["dcd0"], top = data["pdb"])
+    if loadingMdt:
+        data["t0"] = mdt.load(data["dcd0"], top = data["pdb"])
     return data
 
 # Do this first if you need to stitch dcds
