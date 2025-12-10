@@ -17,6 +17,8 @@ import umap
 import hdbscan
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
+from sklearn.decomposition import PCA
+
 
 def makeU(files):
     print("\nMaking universe..")
@@ -87,12 +89,13 @@ def runPca(data, verbose = True):
     atoms = data["t"].topology.select("name CA")
     coords = data["t"].xyz[:, atoms, :].reshape(len(data["t"]), -1) 
     # flatten to 2d matrix for PCA
-    # flattened rows = frames: [x1 y1 z1 x2 y2 z2 ... xn yn zn]
+    # flattened rows = frames or samples: [x1 y1 z1 x2 y2 z2 ... xn yn zn]
     # columns = features
     
     nFeatures = coords.shape[1]
     coordsCentered = coords - coords.mean(axis=0) # centered matrix for PCA
-    cov = (coordsCentered.T @ coordsCentered) / (nFeatures - 1)
+    # feature x sample @ sample x feature / nFeatures
+    cov = (coordsCentered.T @ coordsCentered) / nFeatures
     
     eigvals, eigvecs = np.linalg.eigh(cov)
     idx = np.argsort(eigvals)[::-1]
@@ -100,6 +103,39 @@ def runPca(data, verbose = True):
     eigvecs = eigvecs[:, idx]
     
     data["pc"] = coordsCentered@eigvecs # [frames x features] @ [features @ features]
+    return data
+
+# BACKUP PCA function if mdtraj fails
+def runPcaV2(data, verbose=True):
+    print("Running PCA..")
+
+    # Select CA atoms
+    data["ca"] = data["u"].select_atoms("name CA")
+    n_frames = len(data["u"].trajectory)
+    n_atoms = len(data["ca"])
+
+    # Allocate flattened coordinate array: [frames, 3*N_CA]
+    coords = np.zeros((n_frames, n_atoms * 3), dtype=np.float32)
+
+    # Fill coordinate matrix
+    for i, ts in enumerate(data["u"].trajectory):
+        coords[i, :] = data["ca"].positions.reshape(-1)
+
+    # Center the coordinates
+    coords_centered = coords - coords.mean(axis=0)
+
+    # scikit-learn PCA
+    pca = PCA()
+
+    # Store results
+    data["pc"] = pca.fit_transform(coords_centered) # principal components per frame
+    data["pcaModel"] = pca # eigenvectors, eigenvalues available via pca.components_ and pca.explained_variance_
+
+    if verbose:
+        print(" Finished PCA:")
+        print("  Frames:", data["pc"].shape[0])
+        print("  Components:", data["pc"].shape[1])
+
     return data
 
 def calcSfe(data, bins = 200, sigma = 2, temperature = 310):
@@ -216,6 +252,8 @@ def runAll(pdb = "system.pdb",
     }
     
     data = makeU(files)
+    data = runPca(data)
+    # data = runPcaV2(data)
     data = calcRmsd(data)
     data = calcRmsf(data)
     data = runPca(data)
@@ -228,5 +266,5 @@ def runAll(pdb = "system.pdb",
 if __name__ == "__main__":
     # Change working directory if you need to
     # os.chdir("/volumes/rpaul1tb/pitt/ssdTbxt2035/replicas")
-    runAll(pdb = "<YOUR PDB>",
-           dcd = "<YOUR DCD>")
+    runAll(pdb = "<INSERT>.pdb",
+           dcd = "<INSERT>.dcd")
