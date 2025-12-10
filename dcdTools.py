@@ -3,7 +3,7 @@ import argparse
 import MDAnalysis as mda
 from MDAnalysis.coordinates.DCD import DCDFile
 import MDAnalysis.transformations as transformations
-from MDAnalysis import align
+from MDAnalysis.analysis import align
 
 import mdtraj as mdt
 import os
@@ -24,6 +24,7 @@ args = parser.parse_args()
 
 
 def setup(pdb = args.pdb, dcd = args.dcd):
+    print("\nSetting up..")
     data = { }
     data["pdb"] = pdb
     data["dcd0"] = dcd
@@ -36,6 +37,7 @@ def setup(pdb = args.pdb, dcd = args.dcd):
 def stitch(data, dcd1 = args.dcdStitch, 
            outputName = args.outputName + "Stitched.dcd",
            save = False):
+    print("\nStitching .dcd files..")
     if dcd1 is None:
         raise FileNotFoundError("Use --dcdStitch to stitch dcd to initial dcd")
     if ".dcd" not in dcd1:
@@ -55,17 +57,20 @@ def stitch(data, dcd1 = args.dcdStitch,
 def downsample(data,
                start = 0, end = -1, step = 10,
                outputName = args.outputName + "Downsampled.dcd"):
+    print("\nCreating downsized .dcd file..")
     data["t0"][start:end:step].save(outputName)
     return data
 
 
 # For aligning mdtraj trajectories
 def alignTraj(data, key = "t0", refFrame = 0):
+    print("\nAligning mdtraj trajectory..")
     data[key].superpose(data[key], refFrame)
     return data
 
 # For aligning mdanalysis universe
 def alignU(data, select = "backbone", verbose = True):
+    print("\nAligning mdanalysis universe..")
     aligner = align.AlignTraj(data["protein"], 
                               data["protein"],
                               select = select,
@@ -80,6 +85,7 @@ def alignU(data, select = "backbone", verbose = True):
 def stripWater(data, 
                outputName = args.outputName + "Stripped", 
                save = False):
+    print("\nStripping water from .pdb and .dcd files..")
     data["u"] = mda.Universe(data["pdb"], data["dcd0"])
     data["protein"] = data["u"].select_atoms("protein")
     
@@ -94,9 +100,9 @@ def stripWater(data,
 def runAll():
     # use whatever functions you need to here
     data = setup()
-    # stitch(data)
-    # downsample(data)
-    # align(data)
+    stitch(data)
+    downsample(data)
+    align(data)
     stripWater(data, save = True)
     
     return None
