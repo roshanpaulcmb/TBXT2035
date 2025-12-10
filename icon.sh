@@ -11,7 +11,7 @@
 
 
 #run the MD in the conda environment "struct"
-conda run -n struct python dcdTools.py
+conda run -n md python dcdTools.py
 
 
 
