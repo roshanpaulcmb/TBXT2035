@@ -76,7 +76,6 @@ def calcRmsf(data, ref_frame = 0, select = "name CA", verbose = True):
     r = rms.RMSF(data["proteinCA"]).run(verbose = verbose)
     
     data["rmsfCA"] = r.results.rmsf
-    ca_rmsf = R.results.rmsf
     np.save('rmsfCA.npy', data["rmsfCA"]) #alpha carbon only rmsf
 
     plt.plot(data["proteinCA"].resids, data["rmsf"])
