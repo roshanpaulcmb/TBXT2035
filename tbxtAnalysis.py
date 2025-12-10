@@ -24,19 +24,9 @@ def makeU(files):
     data["u"] = mda.Universe(files["pdb"], files["dcd"])
     data["protein"] = data["u"].select_atoms("protein")
     
+    # PCA requires mdt.load
     data["t"] = mdt.load(files["dcd"], top = files["pdb"])
     data["t"].superpose(data["t"], 0) # align with 0th frame
-    return data
-
-def align(data, verbose = True):
-    aligner = align.AlignTraj(data["protein"], 
-                              data["protein"],
-                              select='backbone',
-                              filename='alignedTraj.dcd',
-                              in_memory=False).run(verbose = verbose)
-    
-    data["protein"] = mda.Universe(data["pdb"], 'alignedTraj.dcd')
-    
     return data
 
 def calcRmsd(data, verbose = True):
@@ -71,14 +61,14 @@ def calcRmsd(data, verbose = True):
 
 def calcRmsf(data, ref_frame = 0, select = "name CA", verbose = True):
     ## Calculate the RMSF for the selection
-    data["proteinCA"] = data["protein"].select_atoms("name CA")
+    data["select"] = data["protein"].select_atoms("name CA")
     
-    r = rms.RMSF(data["proteinCA"]).run(verbose = verbose)
+    r = rms.RMSF(data["select"]).run(verbose = verbose)
     
-    data["rmsfCA"] = r.results.rmsf
-    np.save('rmsfCA.npy', data["rmsfCA"]) #alpha carbon only rmsf
+    data["rmsfSelect"] = r.results.rmsf
+    np.save(f'rmsf{select}.npy', data["rmsfSelect"]) #alpha carbon only rmsf
 
-    plt.plot(data["proteinCA"].resids, data["rmsf"])
+    plt.plot(data["select"].resids, data["rmsfSelect"])
     plt.xlabel('Residue number')
     plt.ylabel('RMSF ($\AA$)')
     plt.savefig("rmsf.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
@@ -219,13 +209,13 @@ def clusterUmap(data, min_cluster_size=500):
 def runAll(pdb = "system.pdb", 
            dcd = "trajectory.dcd"):
     
+    
     files = {
         "pdb": pdb,
         "dcd": dcd
     }
     
     data = makeU(files)
-    data = align(data)
     data = calcRmsd(data)
     data = calcRmsf(data)
     data = runPca(data)
@@ -236,4 +226,7 @@ def runAll(pdb = "system.pdb",
     return None
 
 if __name__ == "__main__":
-    runAll()
+    # Change working directory if you need to
+    # os.chdir("/volumes/rpaul1tb/pitt/ssdTbxt2035/replicas")
+    runAll(pdb = "<YOUR PDB>",
+           dcd = "<YOUR DCD>")
