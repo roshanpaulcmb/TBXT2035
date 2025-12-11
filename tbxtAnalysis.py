@@ -1,6 +1,5 @@
 #### IMPORTS ####
-
-import argparse as arg
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,49 +18,69 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 from sklearn.decomposition import PCA
 
+#### FUNCTIONS ####
 
-def makeU(files):
-    print("\nMaking universe..")
+def setup(args):
     data = { }
-    data["u"] = mda.Universe(files["pdb"], files["dcd"])
+    data["pdb"] = args.pdb
+    data["dcd"] = args.dcd
+    data["outputName"] = args.outputName
+    return data
+
+def makeU(data):
+    print("\nMaking universe..")
+    data["u"] = mda.Universe(data["pdb"], data["dcd"])
     data["protein"] = data["u"].select_atoms("protein")
     
     # PCA requires mdt.load
-    data["t"] = mdt.load(files["dcd"], top = files["pdb"])
-    data["t"].superpose(data["t"], 0) # align with 0th frame
+    # data["t"] = mdt.load(files["dcd"], top = files["pdb"])
+    # data["t"].superpose(data["t"], 0) # align with 0th frame
     return data
 
 def calcRmsd(data, verbose = True):
+    print("\nCalculating RMSD..")
     rFirst = rms.RMSD(data["protein"],
                  data["protein"],
                  select = "name CA",
                  ref_frame = 0).run(verbose = verbose)
-    rFirstM = rFirst.results.rmsd.T
+    data["rFirstM"] = rFirst.results.rmsd.T
     
     rLast = rms.RMSD(data["protein"],
                  data["protein"],
                  select = "name CA",
                  ref_frame = -1).run(verbose = verbose)
-    rLastM = rLast.results.rmsd.T
+    data["rLastM"] = rLast.results.rmsd.T
     
+    # Roshan was checking largest RMSD jump
+    # maxDelta = 0
+    # jumpI = 0
+    # for i in range(1, len(data["rLastM"][2])):
+    #     print(f'{data["rLastM"][2][i]} - {data["rLastM"][2][i - 1]}')
+    #     delta = abs( data["rLastM"][2][i] - data["rLastM"][2][i - 1] )
+    #     if delta > maxDelta:
+    #         maxDelta = delta
+    #         jumpI = i
+    # print(i)
+
     # Visualization
     fig, ax = plt.subplots(figsize=(8,6))
 
     inferno_cmap = colormaps["inferno"]
 
-    ax.plot(rFirstM[1], rFirstM[2], color=inferno_cmap(0.3), label="First Frame Reference")
-    ax.plot(rLastM[1],  rLastM[2],  color=inferno_cmap(0.7), label="Last Frame Reference")
+    ax.plot(data["rFirstM"][1], data["rFirstM"][2], color=inferno_cmap(0.3), label="First Frame Reference")
+    ax.plot(data["rLastM"][1],  data["rLastM"][2],  color=inferno_cmap(0.7), label="Last Frame Reference")
 
     ax.set_xlabel("Frame")
     ax.set_ylabel("RMSD ($\AA$)")
     ax.set_title("RMSD Over Trajectory")
     ax.legend()
-    plt.savefig("rmsd.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(data["outputName"] + "Rmsd.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.close()
     
     return data
 
 def calcRmsf(data, ref_frame = 0, select = "name CA", verbose = True):
+    print("\nCalculating RMSF..")
     ## Calculate the RMSF for the selection
     data["select"] = data["protein"].select_atoms("name CA")
     
@@ -73,7 +92,7 @@ def calcRmsf(data, ref_frame = 0, select = "name CA", verbose = True):
     plt.plot(data["select"].resids, data["rmsfSelect"])
     plt.xlabel('Residue number')
     plt.ylabel('RMSF ($\AA$)')
-    plt.savefig("rmsf.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(data["outputName"] + "Rmsf.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.close()
     
     r = rms.RMSF(data["protein"]).run(verbose = verbose)
@@ -84,30 +103,9 @@ def calcRmsf(data, ref_frame = 0, select = "name CA", verbose = True):
     
     return data
 
-def runPca(data, verbose = True):
-    print("Running PCA..")
-    atoms = data["t"].topology.select("name CA")
-    coords = data["t"].xyz[:, atoms, :].reshape(len(data["t"]), -1) 
-    # flatten to 2d matrix for PCA
-    # flattened rows = frames or samples: [x1 y1 z1 x2 y2 z2 ... xn yn zn]
-    # columns = features
-    
-    nFeatures = coords.shape[1]
-    coordsCentered = coords - coords.mean(axis=0) # centered matrix for PCA
-    # feature x sample @ sample x feature / nFeatures
-    cov = (coordsCentered.T @ coordsCentered) / nFeatures
-    
-    eigvals, eigvecs = np.linalg.eigh(cov)
-    idx = np.argsort(eigvals)[::-1]
-    eigvals = eigvals[idx]
-    eigvecs = eigvecs[:, idx]
-    
-    data["pc"] = coordsCentered@eigvecs # [frames x features] @ [features @ features]
-    return data
-
 # BACKUP PCA function if mdtraj fails
-def runPcaV2(data, verbose=True):
-    print("Running PCA..")
+def runPca(data, verbose=True):
+    print("\nRunning PCA..")
 
     # Select CA atoms
     data["ca"] = data["u"].select_atoms("name CA")
@@ -133,8 +131,8 @@ def runPcaV2(data, verbose=True):
 
     if verbose:
         print(" Finished PCA:")
-        print("  Frames:", data["pc"].shape[0])
-        print("  Components:", data["pc"].shape[1])
+        print(" Frames:", data["pc"].shape[0])
+        print(" Components:", data["pc"].shape[1])
 
     return data
 
@@ -154,11 +152,11 @@ def calcSfe(data, bins = 200, sigma = 2, temperature = 310):
     
     # Visualization
     plt.contourf(data["deltaFsmooth"].T, cmap='inferno')
-    plt.xlabel("PC1")
-    plt.ylabel("PC2")
+    plt.xlabel(f"PC1 ({100*data['pcaModel'].explained_variance_ratio_[0]:.2f}% Explained Variance)")
+    plt.ylabel(f"PC2 ({100*data['pcaModel'].explained_variance_ratio_[1]:.2f}% Explained Variance)")
     plt.colorbar(label="ΔF (kcal/mol)")
     plt.title("Surface Free Energy Plot")
-    plt.savefig("sfePCA.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(data["outputName"] + "SfePCA.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.close()
     return data
 
@@ -188,7 +186,8 @@ def runUmap(data, n_neighbors=90, min_dist=0.6, n_components=3):
     plt.ylabel("UMAP2")
     plt.colorbar(label="Frame")
     plt.title("UMAP of PCA Projection")
-    plt.savefig(f"umapN{n_neighbors}D{min_dist}.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(data["outputName"] + f"umapN{n_neighbors}D{min_dist}.png", 
+                dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.close()
     
     return data
@@ -235,25 +234,16 @@ def clusterUmap(data, min_cluster_size=500):
     plt.ylabel("UMAP2")
     plt.title("Clustered UMAP")
     plt.legend(markerscale=3, fontsize=10)
-    plt.savefig("umapClustered.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(data["outputName"] + "umapClustered.png", dpi=300, bbox_inches='tight', pad_inches=0.1)
     plt.close()
 
     return data
 
 ### RUN ####
 
-def runAll(pdb = "system.pdb", 
-           dcd = "trajectory.dcd"):
-    
-    
-    files = {
-        "pdb": pdb,
-        "dcd": dcd
-    }
-    
-    data = makeU(files)
-    data = runPca(data)
-    # data = runPcaV2(data)
+def runAll(args):
+    data = setup(args)
+    data = makeU(data)
     data = calcRmsd(data)
     data = calcRmsf(data)
     data = runPca(data)
@@ -264,7 +254,39 @@ def runAll(pdb = "system.pdb",
     return None
 
 if __name__ == "__main__":
+    #### ARGPARSE ####
+    parser = argparse.ArgumentParser(description = "TBXT Analysis")
+    parser.add_argument("--pdb", required = True, help = "PDB file")
+    parser.add_argument("--dcd", required = True, help = "DCD file")
+    parser.add_argument("--outputName", required = True,
+                        type = str, 
+                        help="Base string name for files. Do not append .png .pdb or .dcd")
+    
+    args = parser.parse_args()
+    
     # Change working directory if you need to
     # os.chdir("/volumes/rpaul1tb/pitt/ssdTbxt2035/replicas")
-    runAll(pdb = "<INSERT>.pdb",
-           dcd = "<INSERT>.dcd")
+    runAll(args)
+
+
+# Manual PCA method
+# def runPca(data, verbose = True):
+#     print("\nRunning PCA..")
+#     atoms = data["t"].topology.select("name CA")
+#     coords = data["t"].xyz[:, atoms, :].reshape(len(data["t"]), -1) 
+#     # flatten to 2d matrix for PCA
+#     # flattened rows = frames or samples: [x1 y1 z1 x2 y2 z2 ... xn yn zn]
+#     # columns = features
+    
+#     nFeatures = coords.shape[1]
+#     coordsCentered = coords - coords.mean(axis=0) # centered matrix for PCA
+#     # feature x sample @ sample x feature / nFeatures
+#     cov = (coordsCentered.T @ coordsCentered) / nFeatures
+    
+#     eigvals, eigvecs = np.linalg.eigh(cov)
+#     idx = np.argsort(eigvals)[::-1]
+#     eigvals = eigvals[idx]
+#     eigvecs = eigvecs[:, idx]
+    
+#     data["pc"] = coordsCentered@eigvecs # [frames x features] @ [features @ features]
+#     return data
