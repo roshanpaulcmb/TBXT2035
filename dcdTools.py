@@ -22,7 +22,6 @@ args = parser.parse_args()
 
 #### FUNCTIONS ####
 
-
 def setup(pdb = args.pdb, dcd = args.dcd):
     print("\nSetting up..")
     data = { }
@@ -38,6 +37,9 @@ def stitch(data, dcdStitch = args.dcdStitch,
            save = True):
     print("\nStitching .dcd files")
     data["u"] = mda.Universe(data["pdb"], data["dcd"], dcdStitch)
+    # Note for self. I merge the trajectories, then add align to ref = 0
+    # Do I need to align the second dcd to the last frame of the first dcd?
+    
     data["protein"] = data["u"].select_atoms("protein")
 
     # Write the stitched trajectory to a new DCD file
@@ -61,6 +63,7 @@ def alignU(data, select = "backbone", verbose = True):
     
     return data
 
+# https://userguide.mdanalysis.org/stable/reading_and_writing.htmlv
 def stripWater(data, 
                outputName = args.outputName + "Stripped",
                verbose = True,
@@ -85,17 +88,22 @@ def downsample(data,
     if save:
         data["protein"].write(f'{outputName}.dcd', 
                               frames = data["u"].trajectory[start:end:step])
-
+        data["dcd"] = f'{outputName}.dcd'
+        data["u"] = mda.Universe(data["pdb"], data["dcd"])
+    else:
+        data["dcd"] = data["u"].trajectory[start:end:step]
+        data["u"] = mda.Universe(data["pdb"], data["dcd"])
     return data
 
 def runAll():
     # use whatever functions you need to here
     data = setup()
     if args.dcdStitch is not None:
-        stitch(data)
-    alignU(data)
-    stripWater(data)
-    downsample(data)
+        data = stitch(data)
+    data = downsample(data)
+    data = alignU(data)
+    data = stripWater(data)
+    
     
     return None
 
