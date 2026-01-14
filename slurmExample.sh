@@ -8,12 +8,5 @@
 #SBATCH --gres=gpu:1
 #SBATCH --constraint="L40"
 
-#run the MD in the conda environment "struct"
+#run the MD in the conda environment "md"
 conda run -n md python dcdTools.py
-
-
-
-
-
-
-
