@@ -1,25 +1,31 @@
 # TBXT2035
 https://tbxtchallenge.org/
 
--1.0 Baseline - What others have done
-* Start with the PDB of known residue structures (half the protein)
-* Use ftmap to find binding pockets
-* Develop pharmacophores
+# Overview
+This project's goal is to find druggable binding pockets for TBXT, an intrinsically disordered protein.
 
-0.0 - Done
-* Generate predicted pdb of TBXT
-* Alphafold/Boltz
+1. Generating predicted structures using AlphaFold3
+2. Running (enhanced sampling) MD simulations
+3. Finding druggable binding pockets
+4. Docking pharmocophores to binding pokects
+5. Running (enhanced sampling) MD simulations with lead ligand candidates
+6. Reiteration
 
-1.0 Ensemble sampling
-* Run 1 microsecond simulation
-* Simulation must be weighted ensemble
+# MD Simulations conducted
 
-1.1 Replica Exchange
-* If necessary to get more synthetic conformations
+* Implicit solvent
+* Explicit solvent
+* REST2 explicit solvent
 
-2.0
-* Use ML to find synthetic conformations for TBXT (ICoN)
+# Tools
 
-3.0
-* Test pharmacaphores on "more probable" synthetic conformations
-  
+* dcdTools - for editing trajectory files
+* analysisTools - simulation analysis and visualization
+
+# Background
+
+TBXT (Brachyury) is a T-box transcription factor that is essential for notochord formation and early embryonic patterning.
+TBXT has a structured DNA- binding region and a disordered C-terminal IDR.
+TBXT binds to DNA as a dimer and its G177D mutant is implicated in chordoma in humans.
+Currently, TBXT is deemed undruggable.
+We hypothesize that molecular dynamics (MD) simulations can reveal transient cryptic pockets suitable for drug screening.
